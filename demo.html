@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python AUTOSAR v0.5 - Interactive Demo</title>
+<style>
+  :root {
+    --bg-primary: #0f1923;
+    --bg-secondary: #1a2733;
+    --bg-card: #1e2d3d;
+    --bg-card-hover: #253848;
+    --accent: #00b4d8;
+    --accent-glow: rgba(0, 180, 216, 0.25);
+    --accent-dim: #0077b6;
+    --text-primary: #e0e6ed;
+    --text-secondary: #8899a6;
+    --text-muted: #5c6f7e;
+    --border: #2a3a4a;
+    --green: #00c853;
+    --orange: #ff9100;
+    --purple: #b388ff;
+    --pink: #ff80ab;
+    --yellow: #ffd740;
+    --code-bg: #0d1520;
+    --xml-tag: #ff7043;
+    --xml-attr: #ffb74d;
+    --xml-val: #81c784;
+    --py-keyword: #c792ea;
+    --py-string: #c3e88d;
+    --py-func: #82aaff;
+    --py-comment: #546e7a;
+    --py-builtin: #ffcb6b;
+    --radius: 12px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Hero Section */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 50% 50%, var(--accent-glow) 0%, transparent 50%);
+    animation: heroPulse 8s ease-in-out infinite;
+  }
+
+  @keyframes heroPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+
+  .hero h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .version {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--bg-primary);
+    padding: 3px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin: 0 auto 30px;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* Architecture Diagram */
+  .architecture {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .architecture h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+  }
+
+  .arch-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 30px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    white-space: pre;
+    text-align: center;
+  }
+
+  .arch-diagram .hl { color: var(--accent); }
+  .arch-diagram .g { color: var(--green); }
+  .arch-diagram .o { color: var(--orange); }
+  .arch-diagram .p { color: var(--purple); }
+  .arch-diagram .pk { color: var(--pink); }
+
+  /* Pipeline Flow */
+  .pipeline {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .pipeline h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+  }
+
+  .pipeline-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .pipeline-step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    text-align: center;
+    min-width: 160px;
+    transition: var(--transition);
+  }
+
+  .pipeline-step:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: translateY(-2px);
+  }
+
+  .pipeline-step .icon { font-size: 2rem; margin-bottom: 8px; }
+  .pipeline-step .label { font-weight: 700; font-size: 0.95rem; }
+  .pipeline-step .sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
+  .pipeline-arrow {
+    font-size: 1.6rem;
+    color: var(--accent);
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  /* Tabs */
+  .tabs-container {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .tabs-container h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+  }
+
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 0;
+    overflow-x: auto;
+    padding-bottom: 0;
+  }
+
+  .tab-btn {
+    padding: 12px 22px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: var(--transition);
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+  .tab-btn:hover { color: var(--text-secondary); }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-panels {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    min-height: 400px;
+  }
+
+  .tab-panel {
+    display: none;
+    padding: 30px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Example Cards within panels */
+  .example-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .example-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .example-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 24px var(--accent-glow);
+    transform: translateY(-2px);
+  }
+
+  .example-card.expanded {
+    grid-column: 1 / -1;
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .card-icon.blue { background: rgba(0, 180, 216, 0.15); color: var(--accent); }
+  .card-icon.green { background: rgba(0, 200, 83, 0.15); color: var(--green); }
+  .card-icon.orange { background: rgba(255, 145, 0, 0.15); color: var(--orange); }
+  .card-icon.purple { background: rgba(179, 136, 255, 0.15); color: var(--purple); }
+  .card-icon.pink { background: rgba(255, 128, 171, 0.15); color: var(--pink); }
+  .card-icon.yellow { background: rgba(255, 215, 64, 0.15); color: var(--yellow); }
+
+  .card-title { font-weight: 700; font-size: 0.95rem; }
+  .card-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+  .card-expand-icon {
+    margin-left: auto;
+    color: var(--text-muted);
+    transition: var(--transition);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .example-card.expanded .card-expand-icon { transform: rotate(180deg); }
+
+  .card-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .example-card.expanded .card-body { display: block; }
+
+  .code-section {
+    padding: 0;
+  }
+
+  .code-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+
+  .code-section-file {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+  }
+
+  pre {
+    margin: 0;
+    padding: 16px 20px;
+    background: var(--code-bg);
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  pre code { background: none; padding: 0; }
+
+  /* Syntax highlighting classes */
+  .kw { color: var(--py-keyword); }
+  .fn { color: var(--py-func); }
+  .st { color: var(--py-string); }
+  .cm { color: var(--py-comment); }
+  .bi { color: var(--py-builtin); }
+  .nm { color: var(--orange); }
+  .op { color: var(--text-secondary); }
+  .xt { color: var(--xml-tag); }
+  .xa { color: var(--xml-attr); }
+  .xv { color: var(--xml-val); }
+
+  /* Output toggle */
+  .output-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .output-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .output-tab.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+
+  .output-content { display: none; }
+  .output-content.active { display: block; }
+
+  /* AUTOSAR versions */
+  .versions-section {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .versions-section h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+  }
+
+  .version-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .version-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .version-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px var(--accent-glow);
+  }
+
+  .version-card .schema { font-size: 2rem; font-weight: 800; color: var(--accent); }
+  .version-card .release { font-weight: 600; margin: 4px 0; }
+  .version-card .classic { font-size: 0.82rem; color: var(--text-muted); }
+
+  /* Test Results */
+  .test-section {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .test-section h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+  }
+
+  .test-bar-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 30px;
+  }
+
+  .test-bar {
+    height: 32px;
+    background: var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .test-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), #00e676);
+    border-radius: 16px;
+    width: 0;
+    transition: width 1.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--bg-primary);
+  }
+
+  .test-bar-fill.animated { width: 100%; }
+
+  .test-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+  }
+
+  .test-stat-value { font-size: 1.6rem; font-weight: 800; }
+  .test-stat-value.pass { color: var(--green); }
+  .test-stat-value.time { color: var(--accent); }
+  .test-stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero { padding: 50px 20px 40px; }
+    .hero h1 { font-size: 2rem; }
+    .stats-row { gap: 24px; }
+    .tabs-container, .pipeline, .architecture, .versions-section, .test-section { padding: 0 16px; }
+    .pipeline-flow { flex-direction: column; }
+    .pipeline-arrow { transform: rotate(90deg); }
+    .example-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <span class="version">v0.5.5</span>
+    <h1>Python AUTOSAR</h1>
+    <p>A powerful Python toolkit for generating and parsing AUTOSAR XML (ARXML) files. Create data types, port interfaces, software components, and generate RTE headers &mdash; all from Python.</p>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-value">27</div>
+        <div class="stat-label">Examples</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">786</div>
+        <div class="stat-label">Unit Tests</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Schema Versions</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">8</div>
+        <div class="stat-label">Categories</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="architecture">
+  <h2>Module Architecture</h2>
+  <div class="arch-diagram"><span class="hl">                    Python AUTOSAR v0.5 Module Hierarchy</span>
+
+     <span class="g">autosar.xml</span>                 <span class="o">autosar.model</span>             <span class="p">autosar.generator</span>
+  +-----------------------+   +---------------------+   +---------------------+
+  |  <span class="g">Workspace</span>            |   |  <span class="o">ImplementationModel</span> |   |  <span class="p">TypeGenerator</span>       |
+  |  <span class="g">Reader</span> / <span class="g">Writer</span>      |-->|  Intermediate model  |-->|  RTE type headers   |
+  |  <span class="g">Document</span>             |   |  between XML and RTE |   |  C code generation  |
+  |  <span class="g">element</span> (200+ types) |   +---------------------+   +---------------------+
+  |  <span class="g">enumeration</span>          |
+  +-----------------------+
+           |
+           v
+  +-----------------------+
+  |    <span class="pk">.arxml files</span>        |
+  |  AUTOSAR R19-R22 XML  |
+  |  Schema versions      |
+  |  48, 49, 50, 51       |
+  +-----------------------+</div>
+</section>
+
+<!-- Pipeline -->
+<section class="pipeline">
+  <h2>Workflow Pipeline</h2>
+  <div class="pipeline-flow">
+    <div class="pipeline-step">
+      <div class="icon">&#128221;</div>
+      <div class="label">Define</div>
+      <div class="sub">Create elements in Python</div>
+    </div>
+    <div class="pipeline-arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="icon">&#128230;</div>
+      <div class="label">Package</div>
+      <div class="sub">Add to Workspace</div>
+    </div>
+    <div class="pipeline-arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="icon">&#128196;</div>
+      <div class="label">Document</div>
+      <div class="sub">Map to .arxml files</div>
+    </div>
+    <div class="pipeline-arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="icon">&#128190;</div>
+      <div class="label">Write</div>
+      <div class="sub">Generate valid ARXML</div>
+    </div>
+    <div class="pipeline-arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="icon">&#9881;</div>
+      <div class="label">Generate</div>
+      <div class="sub">RTE C headers</div>
+    </div>
+  </div>
+</section>
+
+<!-- Interactive Examples -->
+<section class="tabs-container">
+  <h2>Interactive Examples</h2>
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="data-types">Data Types</button>
+    <button class="tab-btn" data-tab="constants">Constants</button>
+    <button class="tab-btn" data-tab="port-interfaces">Port Interfaces</button>
+    <button class="tab-btn" data-tab="components">Components</button>
+    <button class="tab-btn" data-tab="ports">Port Access</button>
+    <button class="tab-btn" data-tab="templates">Templates</button>
+    <button class="tab-btn" data-tab="generators">Code Gen</button>
+    <button class="tab-btn" data-tab="reader">XML Reader</button>
+  </div>
+
+  <div class="tab-panels" id="tabPanels">
+
+    <!-- DATA TYPES -->
+    <div class="tab-panel active" id="panel-data-types">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon blue">&#916;</div>
+            <div>
+              <div class="card-title">Application Primitive Data Type</div>
+              <div class="card-desc">uint8 with data constraints (0-255)</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">application_data_type.py</span>
+              </div>
+              <pre><code><span class="kw">import</span> autosar.xml
+<span class="kw">import</span> autosar.xml.element <span class="kw">as</span> ar_element
+
+workspace = autosar.xml.<span class="fn">Workspace</span>()
+workspace.<span class="fn">create_package_map</span>({
+    <span class="st">"ApplicationDataTypes"</span>: <span class="st">"DataTypes/ApplicationDataTypes"</span>,
+    <span class="st">"DataConstrs"</span>: <span class="st">"DataTypes/DataConstrs"</span>
+})
+
+<span class="cm"># Create a data constraint (0 to 255)</span>
+data_constraint = ar_element.DataConstraint.<span class="fn">make_internal</span>(
+    <span class="st">"uint8_ADT_DataConstr"</span>, <span class="nm">0</span>, <span class="nm">255</span>)
+workspace.<span class="fn">add_element</span>(<span class="st">"DataConstrs"</span>, data_constraint)
+
+<span class="cm"># Create the application data type</span>
+sw_data_def_props = ar_element.<span class="fn">SwDataDefPropsConditional</span>(
+    data_constraint_ref=data_constraint.<span class="fn">ref</span>())
+data_type = ar_element.<span class="fn">ApplicationPrimitiveDataType</span>(
+    <span class="st">"uint8_ADT"</span>, category=<span class="st">"VALUE"</span>,
+    sw_data_def_props=sw_data_def_props)
+workspace.<span class="fn">add_element</span>(<span class="st">"ApplicationDataTypes"</span>, data_type)
+
+workspace.<span class="fn">create_document</span>(<span class="st">"datatypes.arxml"</span>, packages=<span class="st">"/DataTypes"</span>)
+workspace.<span class="fn">write_documents</span>()</code></pre>
+            </div>
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Generated ARXML</span>
+                <span class="code-section-file">datatypes.arxml</span>
+              </div>
+              <pre><code><span class="xt">&lt;AR-PACKAGE&gt;</span>
+  <span class="xt">&lt;SHORT-NAME&gt;</span>ApplicationDataTypes<span class="xt">&lt;/SHORT-NAME&gt;</span>
+  <span class="xt">&lt;ELEMENTS&gt;</span>
+    <span class="xt">&lt;APPLICATION-PRIMITIVE-DATA-TYPE&gt;</span>
+      <span class="xt">&lt;SHORT-NAME&gt;</span>uint8_ADT<span class="xt">&lt;/SHORT-NAME&gt;</span>
+      <span class="xt">&lt;CATEGORY&gt;</span>VALUE<span class="xt">&lt;/CATEGORY&gt;</span>
+      <span class="xt">&lt;SW-DATA-DEF-PROPS&gt;</span>
+        <span class="xt">&lt;SW-DATA-DEF-PROPS-CONDITIONAL&gt;</span>
+          <span class="xt">&lt;DATA-CONSTR-REF</span> <span class="xa">DEST=</span><span class="xv">"DATA-CONSTR"</span><span class="xt">&gt;</span>
+            /DataTypes/DataConstrs/uint8_ADT_DataConstr
+          <span class="xt">&lt;/DATA-CONSTR-REF&gt;</span>
+        <span class="xt">&lt;/SW-DATA-DEF-PROPS-CONDITIONAL&gt;</span>
+      <span class="xt">&lt;/SW-DATA-DEF-PROPS&gt;</span>
+    <span class="xt">&lt;/APPLICATION-PRIMITIVE-DATA-TYPE&gt;</span>
+  <span class="xt">&lt;/ELEMENTS&gt;</span>
+<span class="xt">&lt;/AR-PACKAGE&gt;</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon green">&#931;</div>
+            <div>
+              <div class="card-title">CompuMethod - Rational</div>
+              <div class="card-desc">Linear scaling: factor 1/64, range 0-65535</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">compu_method_rational.py</span>
+              </div>
+              <pre><code>package = ar_element.<span class="fn">Package</span>(<span class="st">"CompuMethods"</span>)
+computation = ar_element.Computation.<span class="fn">make_rational</span>(
+    scaling_factor=<span class="nm">1/64</span>,
+    offset=<span class="nm">0</span>,
+    lower_limit=<span class="nm">0</span>,
+    upper_limit=<span class="nm">65535</span>,
+    default_value=<span class="nm">65535</span>)
+package.<span class="fn">append</span>(ar_element.<span class="fn">CompuMethod</span>(
+    name=<span class="st">'VehicleSpeed_T'</span>,
+    int_to_phys=computation,
+    category=<span class="st">"LINEAR"</span>))
+
+<span class="cm"># Write and read back</span>
+writer = autosar.xml.<span class="fn">Writer</span>()
+writer.<span class="fn">write_file</span>(document, file_path)
+reader = autosar.xml.<span class="fn">Reader</span>()
+document = reader.<span class="fn">read_file</span>(file_path)
+<span class="cm"># VehicleSpeed_T: &lt;class 'autosar.xml.element.CompuMethod'&gt;</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon orange">&#9776;</div>
+            <div>
+              <div class="card-title">CompuMethod - Value Table</div>
+              <div class="card-desc">Boolean TEXTTABLE: FALSE/TRUE mapping</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">compu_method_value_table.py</span>
+              </div>
+              <pre><code>computation = ar_element.Computation.<span class="fn">make_value_table</span>(
+    [<span class="st">"FALSE"</span>, <span class="st">"TRUE"</span>],
+    default_value=<span class="st">"FALSE"</span>)
+package.<span class="fn">append</span>(ar_element.<span class="fn">CompuMethod</span>(
+    name=<span class="st">'boolean'</span>,
+    int_to_phys=computation,
+    category=<span class="st">"TEXTTABLE"</span>))
+
+<span class="cm"># Output: boolean: &lt;class 'autosar.xml.element.CompuMethod'&gt;</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon purple">&#9638;</div>
+            <div>
+              <div class="card-title">Implementation Data Types</div>
+              <div class="card-desc">Array types with VALUE and TYPE_REFERENCE elements</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">implementation_data_type.py</span>
+              </div>
+              <pre><code><span class="cm"># Array with VALUE element</span>
+sub_element = ar_element.<span class="fn">ImplementationDataTypeElement</span>(
+    <span class="st">'Element'</span>, category=<span class="st">"VALUE"</span>,
+    array_size=<span class="nm">4</span>, sw_data_def_props=sw_data_def_props)
+impl_type = ar_element.<span class="fn">ImplementationDataType</span>(
+    <span class="st">'U8Array4_T'</span>, category=<span class="st">"ARRAY"</span>,
+    sub_elements=[sub_element])
+
+<span class="cm"># Array with TYPE_REFERENCE element</span>
+value_type = ar_element.<span class="fn">ImplementationDataType</span>(
+    <span class="st">"InactiveActive_T"</span>, category=<span class="st">"VALUE"</span>, ...)
+sub_element = ar_element.<span class="fn">ImplementationDataTypeElement</span>(
+    <span class="st">'Element'</span>, category=<span class="st">"TYPE_REFERENCE"</span>,
+    array_size=<span class="nm">2</span>, ...)</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon pink">&#9878;</div>
+            <div>
+              <div class="card-title">SwBaseType &amp; SwAddrMethod</div>
+              <div class="card-desc">Foundation types and address methods</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">sw_base_type.py &amp; sw_addr_method.py</span>
+              </div>
+              <pre><code><span class="cm"># SwBaseType</span>
+package = ar_element.<span class="fn">Package</span>(<span class="st">'BaseTypes'</span>)
+elem = ar_element.<span class="fn">SwBaseType</span>(<span class="st">'Typename'</span>)
+package.<span class="fn">append</span>(elem)
+<span class="cm"># Output: Typename: &lt;class 'autosar.xml.element.SwBaseType'&gt;</span>
+
+<span class="cm"># SwAddrMethod</span>
+package = ar_element.<span class="fn">Package</span>(<span class="st">'SwAddrMethod'</span>)
+elem = ar_element.<span class="fn">SwAddrMethod</span>(<span class="st">'DEFAULT'</span>)
+package.<span class="fn">append</span>(elem)
+<span class="cm"># Output: DEFAULT: &lt;class 'autosar.xml.element.SwAddrMethod'&gt;</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon yellow">&#9878;</div>
+            <div>
+              <div class="card-title">Unit</div>
+              <div class="card-desc">Physical units (e.g. KmPerHour)</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">unit.py</span>
+              </div>
+              <pre><code>package = ar_element.<span class="fn">Package</span>(<span class="st">'Units'</span>)
+elem = ar_element.<span class="fn">Unit</span>(<span class="st">"KmPerHour"</span>, <span class="st">"KmPerHour"</span>)
+package.<span class="fn">append</span>(elem)
+
+writer = autosar.xml.<span class="fn">Writer</span>()
+writer.<span class="fn">write_file</span>(document, file_path)
+<span class="cm"># Output: KmPerHour: &lt;class 'autosar.xml.element.Unit'&gt;</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CONSTANTS -->
+    <div class="tab-panel" id="panel-constants">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon blue">&#35;</div>
+            <div>
+              <div class="card-title">Numerical Constants</div>
+              <div class="card-desc">Integer and float constants with optional labels</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">create_constants.py</span>
+              </div>
+              <pre><code><span class="cm"># Integer constant without label</span>
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(<span class="st">"IntNoLabel"</span>, <span class="nm">1</span>))
+
+<span class="cm"># Integer constant with label</span>
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(<span class="st">"IntConstant"</span>,
+        (<span class="st">"Label1"</span>, <span class="nm">1</span>)))
+
+<span class="cm"># Float constants</span>
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(<span class="st">"FloatNoLabel"</span>, <span class="nm">2.5</span>))
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(<span class="st">"FloatConstant"</span>,
+        (<span class="st">"Label2"</span>, <span class="nm">2.5</span>)))</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon green">&#65;</div>
+            <div>
+              <div class="card-title">Text Constants</div>
+              <div class="card-desc">String-based constant specifications</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+              </div>
+              <pre><code>workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(
+        <span class="st">"TextNoLabel"</span>, <span class="st">"TextValue"</span>))
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(
+        <span class="st">"TextConstant"</span>, (<span class="st">"Label3"</span>, <span class="st">"TextData"</span>)))</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon orange">[ ]</div>
+            <div>
+              <div class="card-title">Array &amp; Record Constants</div>
+              <div class="card-desc">Structured constant values</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+              </div>
+              <pre><code><span class="cm"># Array: prefix "A" to indicate ARRAY-VALUE-SPECIFICATION</span>
+data = [<span class="st">"A"</span>, <span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">4</span>]
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(
+        <span class="st">"ArrayConstant"</span>, (<span class="st">"Label4"</span>, data)))
+
+<span class="cm"># Record: prefix "R" for RECORD-VALUE-SPECIFICATION</span>
+data = [<span class="st">"R"</span>, <span class="st">"Value1"</span>, <span class="st">"Value2"</span>, <span class="nm">3</span>]
+workspace.<span class="fn">add_element</span>(<span class="st">"Constants"</span>,
+    ar_element.ConstantSpecification.<span class="fn">make_constant</span>(
+        <span class="st">"RecordConstant"</span>, (<span class="st">"Label5"</span>, data)))
+
+<span class="cm"># Record with references to other constants</span>
+record = ar_element.<span class="fn">RecordValueSpecification</span>(fields=[
+    ar_element.<span class="fn">ConstantReference</span>(label=<span class="st">"First"</span>,
+        constant_ref=ar_element.<span class="fn">ConstantRef</span>(
+            <span class="st">"/Constants/FloatConstant"</span>)),
+    ar_element.<span class="fn">ConstantReference</span>(label=<span class="st">"Second"</span>,
+        constant_ref=ar_element.<span class="fn">ConstantRef</span>(
+            <span class="st">"/Constants/TextConstant"</span>))
+])</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PORT INTERFACES -->
+    <div class="tab-panel" id="panel-port-interfaces">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon blue">&#8644;</div>
+            <div>
+              <div class="card-title">Sender-Receiver Interface</div>
+              <div class="card-desc">Data exchange between software components</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">sender_receiver_interface.py</span>
+              </div>
+              <pre><code><span class="cm"># Interface with one data element</span>
+portinterface = ar_element.<span class="fn">SenderReceiverInterface</span>(
+    <span class="st">"HeadLightStatus_I"</span>)
+portinterface.<span class="fn">create_data_element</span>(
+    <span class="st">"HeadLightStatus"</span>,
+    type_ref=inactive_active_t.<span class="fn">ref</span>())
+workspace.<span class="fn">add_element</span>(<span class="st">"PortInterfaces"</span>, portinterface)
+
+<span class="cm"># Interface with two data elements</span>
+portinterface = ar_element.<span class="fn">SenderReceiverInterface</span>(
+    <span class="st">"InterfaceName"</span>)
+portinterface.<span class="fn">create_data_element</span>(<span class="st">"Element1"</span>, ...)
+portinterface.<span class="fn">create_data_element</span>(<span class="st">"Element2"</span>, ...)</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon purple">&#9881;</div>
+            <div>
+              <div class="card-title">Client-Server Interface</div>
+              <div class="card-desc">Service operations with typed arguments</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">client_server_interface.py</span>
+              </div>
+              <pre><code>portinterface = ar_element.<span class="fn">ClientServerInterface</span>(
+    <span class="st">"FreeRunningTimer_I"</span>, is_service=<span class="bi">True</span>)
+
+<span class="cm"># Create operation with output argument</span>
+operation = portinterface.<span class="fn">create_operation</span>(<span class="st">"GetTimeStamp"</span>)
+operation.<span class="fn">create_out_argument</span>(
+    <span class="st">"value"</span>,
+    ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
+    type_ref=uint32_impl_type.<span class="fn">ref</span>())</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon orange">&#8693;</div>
+            <div>
+              <div class="card-title">Mode Switch Interface</div>
+              <div class="card-desc">Vehicle mode declarations and mode groups</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">mode_switch_interface.py</span>
+              </div>
+              <pre><code><span class="cm"># Create mode declarations</span>
+vehicle_mode = ar_element.<span class="fn">ModeDeclarationGroup</span>(
+    <span class="st">"VehicleMode"</span>,
+    [<span class="st">"OFF"</span>, <span class="st">"PARKING"</span>, <span class="st">"ACCESSORY"</span>,
+     <span class="st">"CRANKING"</span>, <span class="st">"RUNNING"</span>])
+vehicle_mode.initial_mode_ref = \
+    vehicle_mode.<span class="fn">find</span>(<span class="st">"OFF"</span>).<span class="fn">ref</span>()
+
+<span class="cm"># Create mode switch interface</span>
+portinterface = ar_element.<span class="fn">ModeSwitchInterface</span>(
+    <span class="st">"VehicleMode_I"</span>, is_service=<span class="bi">False</span>)
+portinterface.<span class="fn">create_mode_group</span>(
+    <span class="st">"mode"</span>, mode_declaration.<span class="fn">ref</span>())</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon green">&#9741;</div>
+            <div>
+              <div class="card-title">NV Data &amp; Parameter Interfaces</div>
+              <div class="card-desc">Non-volatile data and calibration parameters</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+              </div>
+              <pre><code><span class="cm"># NV Data Interface</span>
+nv_interface = ar_element.<span class="fn">NvDataInterface</span>(<span class="st">"NvData_I"</span>)
+nv_interface.<span class="fn">create_data_element</span>(
+    <span class="st">"StoredValue"</span>, type_ref=uint16_impl_t.<span class="fn">ref</span>())
+
+<span class="cm"># Parameter Interface</span>
+param_interface = ar_element.<span class="fn">ParameterInterface</span>(
+    <span class="st">"CalibrationParams_I"</span>)
+param_interface.<span class="fn">create_parameter</span>(
+    <span class="st">"CalFactor"</span>, type_ref=uint32_impl_t.<span class="fn">ref</span>())</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COMPONENTS -->
+    <div class="tab-panel" id="panel-components">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon blue">&#9641;</div>
+            <div>
+              <div class="card-title">Application Software Component</div>
+              <div class="card-desc">SWC with ports, runnables, events, and behavior</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">application_component.py</span>
+              </div>
+              <pre><code><span class="cm"># Create the SWC</span>
+swc = ar_element.<span class="fn">ApplicationSoftwareComponentType</span>(
+    <span class="st">"SenderComponent"</span>)
+workspace.<span class="fn">add_element</span>(<span class="st">"ComponentTypes"</span>, swc)
+
+<span class="cm"># Create provide ports with init values</span>
+swc.<span class="fn">create_provide_port</span>(<span class="st">"EngineSpeed"</span>,
+    engine_speed_interface,
+    com_spec={<span class="st">"init_value"</span>: engine_speed_init.<span class="fn">ref</span>(),
+              <span class="st">"uses_end_to_end_protection"</span>: <span class="bi">False</span>})
+
+<span class="cm"># Create internal behavior</span>
+behavior = swc.<span class="fn">create_internal_behavior</span>()
+behavior.<span class="fn">create_exclusive_area</span>(<span class="st">"ExampleExclusiveArea"</span>)
+
+<span class="cm"># Create runnables</span>
+behavior.<span class="fn">create_runnable</span>(<span class="st">"SenderComponent_Init"</span>)
+runnable = behavior.<span class="fn">create_runnable</span>(<span class="st">"SenderComponent_Run"</span>,
+    can_enter_leave=<span class="st">"ExampleExclusiveArea"</span>)
+runnable.<span class="fn">create_port_access</span>(
+    [<span class="st">"EngineSpeed"</span>, <span class="st">"VehicleSpeed"</span>])
+
+<span class="cm"># Create events</span>
+behavior.<span class="fn">create_init_event</span>(<span class="st">"SenderComponent_Init"</span>)
+behavior.<span class="fn">create_timing_event</span>(<span class="st">"SenderComponent_Run"</span>,
+    period=<span class="nm">0.1</span>)
+
+<span class="cm"># Port API options</span>
+behavior.<span class="fn">create_port_api_options</span>(<span class="st">"*"</span>,
+    enable_take_address=<span class="bi">False</span>, indirect_api=<span class="bi">False</span>)</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon purple">&#9707;</div>
+            <div>
+              <div class="card-title">Composition Component</div>
+              <div class="card-desc">Multi-SWC composition with connectors</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">composition_component.py</span>
+              </div>
+              <pre><code><span class="cm"># Create composition</span>
+swc = ar_element.<span class="fn">CompositionSwComponentType</span>(
+    <span class="st">"CompositionComponent"</span>)
+
+<span class="cm"># Add delegation ports</span>
+swc.<span class="fn">create_require_port</span>(<span class="st">"EngineSpeed"</span>, ...)
+swc.<span class="fn">create_require_port</span>(<span class="st">"VehicleSpeed"</span>, ...)
+
+<span class="cm"># Add component prototypes</span>
+swc.<span class="fn">create_component_prototype</span>(
+    workspace.<span class="fn">find_element</span>(<span class="st">"ComponentTypes"</span>,
+        <span class="st">"ReceiverComponent"</span>))
+swc.<span class="fn">create_component_prototype</span>(
+    workspace.<span class="fn">find_element</span>(<span class="st">"ComponentTypes"</span>,
+        <span class="st">"TimerComponent"</span>))
+
+<span class="cm"># Create connectors between components</span>
+swc.<span class="fn">create_connector</span>(
+    <span class="st">"TimerComponent/FreeRunningTimer"</span>,
+    <span class="st">"ReceiverComponent/FreeRunningTimer"</span>,
+    workspace)
+swc.<span class="fn">create_connector</span>(
+    <span class="st">"VehicleSpeed"</span>,
+    <span class="st">"ReceiverComponent/VehicleSpeed"</span>,
+    workspace)</code></pre>
+            </div>
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Composition Architecture</span>
+              </div>
+              <pre><code><span class="cm">  +---------------------------------------------------------+
+  |               CompositionComponent                      |
+  |                                                         |
+  |  R[EngineSpeed]   R[VehicleSpeed]                       |
+  |       |                 |                               |
+  |       v                 v                               |
+  |  +-------------------------+   +---------------------+  |
+  |  |  ReceiverComponent      |   |  TimerComponent     |  |
+  |  |  R: EngineSpeed         |   |  P: FreeRunningTimer|  |
+  |  |  R: VehicleSpeed        |&lt;--|                     |  |
+  |  |  R: FreeRunningTimer    |   |  GetTime()          |  |
+  |  |                         |   |  IsTimerElapsed()   |  |
+  |  +-------------------------+   +---------------------+  |
+  +---------------------------------------------------------+</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PORTS -->
+    <div class="tab-panel" id="panel-ports">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon green">&#8596;</div>
+            <div>
+              <div class="card-title">Explicit Send/Receive</div>
+              <div class="card-desc">VALUE vs ARGUMENT access modes</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">explicit_send_receive.py</span>
+              </div>
+              <pre><code><span class="cm"># Create ports with per-element com specs</span>
+swc.<span class="fn">create_r_port</span>(<span class="st">"MyReceivePort"</span>,
+    multi_element_interface,
+    com_spec=[
+        (<span class="st">"Value1"</span>, {<span class="st">"init_value"</span>: <span class="nm">65535</span>}),
+        (<span class="st">"Value2"</span>, {<span class="st">"init_value"</span>: <span class="nm">255</span>})])
+swc.<span class="fn">create_p_port</span>(<span class="st">"MySendPort"</span>,
+    single_element_interface,
+    com_spec={<span class="st">"init_value"</span>: <span class="nm">65535</span>})
+
+<span class="cm"># Port access with explicit modes:</span>
+<span class="cm"># VALUE   - returns value directly</span>
+<span class="cm"># ARGUMENT - returns value in arg + result</span>
+<span class="cm"># SEND    - for provide ports</span>
+runnable.<span class="fn">create_port_access</span>([
+    <span class="st">"VALUE: MyReceivePort/Value1"</span>,
+    <span class="st">"ARGUMENT: MyReceivePort/Value2"</span>,
+    <span class="st">"SEND: MySendPort"</span>])</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon orange">&#8660;</div>
+            <div>
+              <div class="card-title">Implicit Read/Write</div>
+              <div class="card-desc">Implicit port access with data consistency</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">implicit_read_write.py</span>
+              </div>
+              <pre><code><span class="cm"># Implicit data access provides consistent</span>
+<span class="cm"># snapshots of port data at runnable boundaries</span>
+<span class="cm"># READ:  read-access at runnable start</span>
+<span class="cm"># WRITE: write-access at runnable end</span>
+runnable.<span class="fn">create_port_access</span>([
+    <span class="st">"READ: MyReceivePort/Value1"</span>,
+    <span class="st">"READ: MyReceivePort/Value2"</span>,
+    <span class="st">"WRITE: MySendPort"</span>])</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon purple">&#9888;</div>
+            <div>
+              <div class="card-title">Mode Switch Ports</div>
+              <div class="card-desc">Access and switch vehicle/ECU modes</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">mode_switch.py</span>
+              </div>
+              <pre><code><span class="cm"># R-PORT: read current ECU mode</span>
+swc.<span class="fn">create_r_port</span>(<span class="st">"EcuM_CurrentMode"</span>,
+    ecu_mode_interface,
+    com_spec={<span class="st">"enhanced_mode_api"</span>: <span class="bi">False</span>,
+              <span class="st">"supports_async"</span>: <span class="bi">False</span>})
+
+<span class="cm"># P-PORT: provide vehicle mode</span>
+swc.<span class="fn">create_p_port</span>(<span class="st">"VehicleMode"</span>,
+    vehicle_mode_interface,
+    com_spec={<span class="st">"enhanced_mode_api"</span>: <span class="bi">False</span>,
+              <span class="st">"mode_switched_ack"</span>: <span class="nm">1.0</span>})
+
+<span class="cm"># Port access:</span>
+<span class="cm"># ACCESS - read mode (anonymous or named)</span>
+<span class="cm"># SWITCH - mode switch point (P-PORT)</span>
+runnable.<span class="fn">create_port_access</span>([
+    <span class="st">"EcuM_CurrentMode"</span>,
+    <span class="st">"SWITCH: VehicleMode"</span>])</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon pink">&#9733;</div>
+            <div>
+              <div class="card-title">Port API Options</div>
+              <div class="card-desc">Configure port access behavior per-port</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">port_api_options.py</span>
+              </div>
+              <pre><code><span class="cm"># Set defaults for all ports</span>
+behavior.<span class="fn">create_port_api_options</span>(<span class="st">"*"</span>,
+    enable_take_address=<span class="bi">False</span>,
+    indirect_api=<span class="bi">False</span>)
+
+<span class="cm"># Override for specific port</span>
+behavior.port_api_options[<span class="st">"VehicleSpeed"</span>] \
+    .enable_take_address = <span class="bi">True</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div class="tab-panel" id="panel-templates">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon green">&#9881;</div>
+            <div>
+              <div class="card-title">Config-Based Generation</div>
+              <div class="card-desc">TOML config + template classes for large projects</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">generate_xml_using_config.py</span>
+              </div>
+              <pre><code><span class="kw">from</span> demo_system <span class="kw">import</span> platform, component
+
+config_file_path = <span class="st">"config.toml"</span>
+workspace = ar_workspace.<span class="fn">Workspace</span>(
+    config_file_path, document_root=<span class="st">"generated"</span>)
+
+<span class="cm"># Apply platform type templates</span>
+workspace.<span class="fn">apply</span>(platform.ImplementationTypes.boolean)
+workspace.<span class="fn">apply</span>(platform.ImplementationTypes.uint8)
+workspace.<span class="fn">apply</span>(platform.ImplementationTypes.uint16)
+workspace.<span class="fn">apply</span>(platform.ImplementationTypes.uint32)
+workspace.<span class="fn">apply</span>(platform.ImplementationTypes.uint64)
+
+<span class="cm"># Apply component type templates</span>
+workspace.<span class="fn">apply</span>(component.CompositionComponent)
+
+<span class="cm"># Write all documents (paths from config)</span>
+workspace.<span class="fn">write_documents</span>()</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon blue">&#128196;</div>
+            <div>
+              <div class="card-title">Code-Only Generation</div>
+              <div class="card-desc">Same result without config files</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">generate_xml_without_config.py</span>
+              </div>
+              <pre><code><span class="cm"># Create workspace and namespaces manually</span>
+workspace = ar_workspace.<span class="fn">Workspace</span>()
+workspace.<span class="fn">create_namespace</span>(<span class="st">"AUTOSAR_Platform"</span>,
+    package_map={...}, document_mapping={...})
+workspace.<span class="fn">create_namespace</span>(<span class="st">"Default"</span>,
+    package_map={...}, document_mapping={...})
+
+<span class="cm"># Apply same templates, manual doc creation</span>
+workspace.<span class="fn">apply</span>(platform.ImplementationTypes.boolean)
+<span class="cm">...</span>
+workspace.<span class="fn">set_document_root</span>(<span class="st">"generated"</span>)
+workspace.<span class="fn">create_document_mapping</span>(...)</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GENERATORS -->
+    <div class="tab-panel" id="panel-generators">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon orange">&#9658;</div>
+            <div>
+              <div class="card-title">RTE Type Header - Scalar</div>
+              <div class="card-desc">Generate C typedef from implementation data type</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">gen_type_defs_scalar.py</span>
+              </div>
+              <pre><code><span class="kw">from</span> autosar.model <span class="kw">import</span> ImplementationModel
+<span class="kw">import</span> autosar.generator
+
+implementation = <span class="fn">ImplementationModel</span>(workspace)
+implementation.<span class="fn">create_from_element</span>(inactive_active_t)
+type_generator = autosar.generator.<span class="fn">TypeGenerator</span>(
+    implementation)
+<span class="bi">print</span>(type_generator.<span class="fn">write_type_header_str</span>())</code></pre>
+            </div>
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Generated C Header</span>
+                <span class="code-section-file">Rte_Type.h</span>
+              </div>
+              <pre><code><span class="cm">#ifndef</span> <span class="bi">RTE_TYPE_H_</span>
+<span class="cm">#define</span> <span class="bi">RTE_TYPE_H_</span>
+
+<span class="kw">#include</span> <span class="st">"Rte.h"</span>
+
+<span class="kw">typedef</span> uint8 <span class="fn">InactiveActive_T</span>;
+
+<span class="cm">#endif</span> <span class="cm">// RTE_TYPE_H_</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon purple">&#9638;</div>
+            <div>
+              <div class="card-title">RTE Type Header - Array</div>
+              <div class="card-desc">Generate C array typedef</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Generated C Header</span>
+              </div>
+              <pre><code><span class="kw">typedef</span> uint8 <span class="fn">InactiveActive_T</span>;
+<span class="kw">typedef</span> InactiveActive_T <span class="fn">InactiveActiveArray_T</span>[<span class="nm">3</span>];</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon green">&#123;&#125;</div>
+            <div>
+              <div class="card-title">RTE Type Header - Record</div>
+              <div class="card-desc">Generate C struct from record type</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Generated C Header</span>
+              </div>
+              <pre><code><span class="kw">typedef</span> uint8 <span class="fn">InactiveActive_T</span>;
+<span class="kw">struct</span> Rte_struct_MyRecord_T
+{
+    InactiveActive_T <span class="fn">First</span>;
+    uint32 <span class="fn">Second</span>;
+};
+<span class="kw">typedef</span> <span class="kw">struct</span> Rte_struct_MyRecord_T <span class="fn">MyRecord_T</span>;</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- READER -->
+    <div class="tab-panel" id="panel-reader">
+      <div class="example-grid">
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon pink">&#9888;</div>
+            <div>
+              <div class="card-title">Error-Resilient XML Parsing</div>
+              <div class="card-desc">Parser resumes on errors, reports issues</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">print_errors.py</span>
+              </div>
+              <pre><code>reader = autosar.xml.<span class="fn">Reader</span>()
+document = reader.<span class="fn">read_file</span>(<span class="st">"xml_with_errors.arxml"</span>)
+<span class="kw">for</span> pkg <span class="kw">in</span> document.packages:
+    <span class="fn">print_package_stats</span>(pkg)</code></pre>
+            </div>
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Console Output</span>
+              </div>
+              <pre><code><span class="st">xml_with_errors.arxml(16):</span> Parse error encountered
+while reading element starting on this line:
+    Not a number: FiftyFive
+
+<span class="st">xml_with_errors.arxml(25):</span> Element with SHORT-NAME
+'C_HazardSwitchIllumination_IV' already exists
+in package 'Constants'
+
+<span class="st">xml_with_errors.arxml(43):</span> Element with SHORT-NAME
+'C_HazardSwitchIllumination_IV' already exists
+in package 'Constants'
+
+Number of elements in "/Constants": <span class="nm">2</span>
+<span class="cm"># 5 elements in file, only 2 successfully parsed</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-card" onclick="toggleCard(this)">
+          <div class="card-header">
+            <div class="card-icon blue">&#128279;</div>
+            <div>
+              <div class="card-title">Element References</div>
+              <div class="card-desc">Navigate the workspace by reference paths</div>
+            </div>
+            <div class="card-expand-icon">&#9662;</div>
+          </div>
+          <div class="card-body">
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Python Source</span>
+                <span class="code-section-file">reference_example.py</span>
+              </div>
+              <pre><code>data_type = workspace.<span class="fn">find_element</span>(
+    <span class="st">"PlatformImplementationDataTypes"</span>, <span class="st">"uint16"</span>)
+<span class="bi">print</span>(data_type.<span class="fn">ref</span>())
+
+port_interface = workspace.<span class="fn">find_element</span>(
+    <span class="st">"PortInterfaces"</span>, <span class="st">"VehicleSpeed_I"</span>)
+<span class="bi">print</span>(port_interface.<span class="fn">ref</span>())
+
+constant = workspace.<span class="fn">find_element</span>(
+    <span class="st">"Constants"</span>, <span class="st">"EngineSpeed_IV"</span>)
+<span class="bi">print</span>(constant.<span class="fn">ref</span>())
+
+swc = workspace.<span class="fn">find_element</span>(
+    <span class="st">"ComponentTypes"</span>, <span class="st">"SenderComponent"</span>)
+<span class="bi">print</span>(swc.<span class="fn">ref</span>())</code></pre>
+            </div>
+            <div class="code-section">
+              <div class="code-section-header">
+                <span class="code-section-label">Console Output</span>
+              </div>
+              <pre><code>/AUTOSAR_Platform/ImplementationDataTypes/uint16
+/PortInterfaces/VehicleSpeed_I
+/Constants/EngineSpeed_IV
+/ComponentTypes/SenderComponent</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Supported AUTOSAR Versions -->
+<section class="versions-section">
+  <h2>Supported AUTOSAR Versions</h2>
+  <div class="version-grid">
+    <div class="version-card">
+      <div class="schema">48</div>
+      <div class="release">R19-11</div>
+      <div class="classic">Classic AUTOSAR 4.5</div>
+    </div>
+    <div class="version-card">
+      <div class="schema">49</div>
+      <div class="release">R20-11</div>
+      <div class="classic">Classic AUTOSAR 4.6</div>
+    </div>
+    <div class="version-card">
+      <div class="schema">50</div>
+      <div class="release">R21-11</div>
+      <div class="classic">Classic AUTOSAR 4.7</div>
+    </div>
+    <div class="version-card">
+      <div class="schema">51</div>
+      <div class="release">R22-11</div>
+      <div class="classic">Classic AUTOSAR 4.8</div>
+    </div>
+  </div>
+</section>
+
+<!-- Test Results -->
+<section class="test-section" id="testSection">
+  <h2>Test Suite Results</h2>
+  <div class="test-bar-container">
+    <div class="test-bar">
+      <div class="test-bar-fill" id="testBarFill">786 / 786 PASSED</div>
+    </div>
+    <div class="test-stats">
+      <div>
+        <div class="test-stat-value pass">786</div>
+        <div class="test-stat-label">Tests Passed</div>
+      </div>
+      <div>
+        <div class="test-stat-value pass">0</div>
+        <div class="test-stat-label">Failures</div>
+      </div>
+      <div>
+        <div class="test-stat-value time">0.263s</div>
+        <div class="test-stat-label">Duration</div>
+      </div>
+      <div>
+        <div class="test-stat-value pass">27</div>
+        <div class="test-stat-label">Examples Run</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Python AUTOSAR v0.5.5 &mdash; <a href="https://github.com/cogu/autosar" target="_blank">GitHub</a> &mdash; Python 3.10+ required &mdash; License: MIT</p>
+</footer>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Card expand/collapse
+  function toggleCard(card) {
+    card.classList.toggle('expanded');
+  }
+
+  // Animate test bar on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.getElementById('testBarFill').classList.add('animated');
+      }
+    });
+  }, { threshold: 0.5 });
+
+  observer.observe(document.getElementById('testSection'));
+
+  // Animate stats on load
+  document.querySelectorAll('.stat-value').forEach(el => {
+    const target = parseInt(el.textContent);
+    if (isNaN(target)) return;
+    let current = 0;
+    const step = Math.ceil(target / 40);
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        current = target;
+        clearInterval(interval);
+      }
+      el.textContent = current;
+    }, 30);
+  });
+</script>
+
+</body>
+</html>
