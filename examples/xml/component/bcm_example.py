@@ -253,9 +253,7 @@ def validate_arxml(output_dir: str):
         "bcm_constants.arxml",
         "bcm_portinterfaces.arxml",
         "WindowController.arxml",
-        "WindowController_Implementation.arxml",
         "DoorSensor.arxml",
-        "DoorSensor_Implementation.arxml",
         "BodyControlModule.arxml",
     ]
     arxml_files = [f for f in bcm_files if os.path.isfile(os.path.join(output_dir, f))]
