@@ -1,0 +1,33 @@
+digraph AccArchitecture {
+  graph [rankdir=LR, splines=spline, nodesep=0.6, ranksep=1.4, fontname="Helvetica", label="AccComposition", labelloc=t, fontsize=22];
+  node [shape=plaintext, fontname="Helvetica"];
+  edge [fontname="Helvetica", fontsize=10, color="#444444"];
+  "RadarPreProcessing" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="6" CELLPADDING="4" BGCOLOR="white" STYLE="ROUNDED"><TR><TD COLSPAN="2" BORDER="0"><B><FONT POINT-SIZE="15">RadarPreProcessing</FONT></B><BR/><FONT POINT-SIZE="10" COLOR="#555555">ApplicationSoftwareComponentType</FONT></TD></TR><TR><TD PORT="r_RadarRawTarget" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; RadarRawTarget : RadarRawTarget_I [SR]</FONT></TD><TD PORT="p_RadarTarget" ALIGN="RIGHT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">RadarTarget : RadarTarget_I [SR] &#9654;</FONT></TD></TR><TR><TD PORT="r_VehicleSpeed" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; VehicleSpeed : VehicleSpeed_I [SR]</FONT></TD><TD BORDER="0"></TD></TR></TABLE>>];
+  "AccController" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="6" CELLPADDING="4" BGCOLOR="white" STYLE="ROUNDED"><TR><TD COLSPAN="2" BORDER="0"><B><FONT POINT-SIZE="15">AccController</FONT></B><BR/><FONT POINT-SIZE="10" COLOR="#555555">ApplicationSoftwareComponentType</FONT></TD></TR><TR><TD PORT="r_RadarTarget" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; RadarTarget : RadarTarget_I [SR]</FONT></TD><TD PORT="p_AccelRequest" ALIGN="RIGHT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">AccelRequest : AccAccelRequest_I [SR] &#9654;</FONT></TD></TR><TR><TD PORT="r_VehicleSpeed" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; VehicleSpeed : VehicleSpeed_I [SR]</FONT></TD><TD PORT="p_AccMode" ALIGN="RIGHT" BGCOLOR="#eaf6ea" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">AccMode : AccMode_I [MS] &#9654;</FONT></TD></TR><TR><TD PORT="r_DriverRequest" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; DriverRequest : AccDriverRequest_I [SR]</FONT></TD><TD PORT="p_AccCalibration" ALIGN="RIGHT" BGCOLOR="#fdf0e0" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">AccCalibration : AccCalibration_I [CS] &#9654;</FONT></TD></TR></TABLE>>];
+  "ActuatorArbitration" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="6" CELLPADDING="4" BGCOLOR="white" STYLE="ROUNDED"><TR><TD COLSPAN="2" BORDER="0"><B><FONT POINT-SIZE="15">ActuatorArbitration</FONT></B><BR/><FONT POINT-SIZE="10" COLOR="#555555">ApplicationSoftwareComponentType</FONT></TD></TR><TR><TD PORT="r_AccelRequest" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; AccelRequest : AccAccelRequest_I [SR]</FONT></TD><TD PORT="p_EngineTorqueRequest" ALIGN="RIGHT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">EngineTorqueRequest : EngineTorqueRequest_I [SR] &#9654;</FONT></TD></TR><TR><TD PORT="r_VehicleSpeed" ALIGN="LEFT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; VehicleSpeed : VehicleSpeed_I [SR]</FONT></TD><TD PORT="p_BrakeDecelRequest" ALIGN="RIGHT" BGCOLOR="#e8f0fb" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">BrakeDecelRequest : BrakeDecelRequest_I [SR] &#9654;</FONT></TD></TR><TR><TD PORT="r_AccMode" ALIGN="LEFT" BGCOLOR="#eaf6ea" BORDER="1" STYLE="ROUNDED"><FONT POINT-SIZE="11">&#9655; AccMode : AccMode_I [MS]</FONT></TD><TD BORDER="0"></TD></TR></TABLE>>];
+  subgraph cluster_inputs {
+    label=""; style=invis;
+    "outer_RadarRawTarget" [label="RadarRawTarget\nRadarRawTarget_I [SR]", shape=rarrow, style="filled", fillcolor="#e8f0fb", fontsize=11, margin="0.16,0.08"];
+    "outer_VehicleSpeed" [label="VehicleSpeed\nVehicleSpeed_I [SR]", shape=rarrow, style="filled", fillcolor="#e8f0fb", fontsize=11, margin="0.16,0.08"];
+    "outer_DriverRequest" [label="DriverRequest\nAccDriverRequest_I [SR]", shape=rarrow, style="filled", fillcolor="#e8f0fb", fontsize=11, margin="0.16,0.08"];
+  }
+  subgraph cluster_outputs {
+    label=""; style=invis;
+    "outer_EngineTorqueRequest" [label="EngineTorqueRequest\nEngineTorqueRequest_I [SR]", shape=cds, style="filled", fillcolor="#e8f0fb", fontsize=11, margin="0.16,0.08"];
+    "outer_BrakeDecelRequest" [label="BrakeDecelRequest\nBrakeDecelRequest_I [SR]", shape=cds, style="filled", fillcolor="#e8f0fb", fontsize=11, margin="0.16,0.08"];
+    "outer_AccMode" [label="AccMode\nAccMode_I [MS]", shape=cds, style="filled", fillcolor="#eaf6ea", fontsize=11, margin="0.16,0.08"];
+    "outer_AccCalibration" [label="AccCalibration\nAccCalibration_I [CS]", shape=cds, style="filled", fillcolor="#fdf0e0", fontsize=11, margin="0.16,0.08"];
+  }
+  "RadarPreProcessing":p_RadarTarget -> "AccController":r_RadarTarget [label="RadarTarget_I", penwidth=1.6];
+  "AccController":p_AccelRequest -> "ActuatorArbitration":r_AccelRequest [label="AccAccelRequest_I", penwidth=1.6];
+  "AccController":p_AccMode -> "ActuatorArbitration":r_AccMode [label="AccMode_I", penwidth=1.6];
+  "outer_RadarRawTarget" -> "RadarPreProcessing":r_RadarRawTarget [style=dashed, arrowhead=vee];
+  "outer_VehicleSpeed" -> "RadarPreProcessing":r_VehicleSpeed [style=dashed, arrowhead=vee];
+  "outer_VehicleSpeed" -> "AccController":r_VehicleSpeed [style=dashed, arrowhead=vee];
+  "outer_VehicleSpeed" -> "ActuatorArbitration":r_VehicleSpeed [style=dashed, arrowhead=vee];
+  "outer_DriverRequest" -> "AccController":r_DriverRequest [style=dashed, arrowhead=vee];
+  "AccController":p_AccCalibration -> "outer_AccCalibration" [style=dashed, arrowhead=vee];
+  "AccController":p_AccMode -> "outer_AccMode" [style=dashed, arrowhead=vee];
+  "ActuatorArbitration":p_EngineTorqueRequest -> "outer_EngineTorqueRequest" [style=dashed, arrowhead=vee];
+  "ActuatorArbitration":p_BrakeDecelRequest -> "outer_BrakeDecelRequest" [style=dashed, arrowhead=vee];
+}

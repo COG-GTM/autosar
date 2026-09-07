@@ -24,3 +24,6 @@ python examples\template\generate_xml_without_config.py
 python examples\generator\data_types\gen_type_defs_scalar.py
 python examples\generator\data_types\gen_type_defs_array.py
 python examples\generator\data_types\gen_type_defs_record.py
+python examples\template\generate_acc_xml.py
+python examples\template\verify_acc_roundtrip.py
+python examples\template\generate_acc_diagram.py
