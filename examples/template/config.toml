@@ -4,6 +4,7 @@
     ImplementationDataType = "DataTypes/ImplementationDataTypes"
     CompuMethod = "DataTypes/CompuMethods"
     DataConstraint = "DataTypes/DataConstrs"
+    Unit = "DataTypes/Units"
     ComponentType = "/ComponentTypes"
     ModeDeclaration = "/ModeDclrGroups"
     PortInterface = "/PortInterfaces"

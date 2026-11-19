@@ -10,3 +10,4 @@ NAMESPACE = "Default"
 
 EngineSpeed_IV = factory.ConstantTemplate("EngineSpeed_IV", NAMESPACE, 65535)
 VehicleSpeed_IV = factory.ConstantTemplate("VehicleSpeed_IV", NAMESPACE, 65535)
+WheelSpeed_IV = factory.ConstantTemplate("WheelSpeed_IV", NAMESPACE, 0)
