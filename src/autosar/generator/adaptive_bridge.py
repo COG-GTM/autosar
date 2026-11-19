@@ -872,6 +872,8 @@ def render_skeleton_header(model: ServiceModel, ara_include_prefix: str) -> str:
     cpp.open(f"class {class_name}")
     cpp.access("private")
     cpp.line("bool mOffered;")
+    if model.methods:
+        cpp.line("ara::com::someip::rpc::RpcServer *const mRpcServer;")
     for method in model.methods:
         cpp.line()
         cpp.line(f"bool handle{method.name}(")
@@ -919,8 +921,10 @@ def render_skeleton_header(model: ServiceModel, ara_include_prefix: str) -> str:
     if model.methods:
         cpp.line("/// @param rpcServer RPC server that dispatches the method requests")
         parameters.append("ara::com::someip::rpc::RpcServer *rpcServer")
-    initializers = ["mOffered{false}"] + [
-        f"{event.name}(eventNetworkLayer, c{event.name}EventId, &mOffered)" for event in model.events]
+    initializers = ["mOffered{false}"]
+    if model.methods:
+        initializers.append("mRpcServer{rpcServer}")
+    initializers += [f"{event.name}(eventNetworkLayer, c{event.name}EventId, &mOffered)" for event in model.events]
     cpp.line(f"{'explicit ' if len(parameters) == 1 else ''}{class_name}(")
     for index, parameter in enumerate(parameters):
         cpp.line(f"    {parameter}{',' if index + 1 < len(parameters) else ')'}")
@@ -928,7 +932,7 @@ def render_skeleton_header(model: ServiceModel, ara_include_prefix: str) -> str:
         cpp.line(f"    {':' if index == 0 else ' '} {initializer}{',' if index + 1 < len(initializers) else ''}")
     cpp.open()
     for method in model.methods:
-        cpp.line("rpcServer->SetHandler(")
+        cpp.line("mRpcServer->SetHandler(")
         cpp.line(f"    cServiceId, c{method.name}MethodId,")
         cpp.line("    [this](const std::vector<std::uint8_t> &request,")
         cpp.line("           std::vector<std::uint8_t> &response)")
@@ -939,7 +943,22 @@ def render_skeleton_header(model: ServiceModel, ara_include_prefix: str) -> str:
     cpp.line()
     cpp.line(f"{class_name}(const {class_name} &) = delete;")
     cpp.line(f"{class_name} &operator=(const {class_name} &) = delete;")
-    cpp.line(f"virtual ~{class_name}() noexcept = default;")
+    if model.methods:
+        cpp.line()
+        cpp.line(f"virtual ~{class_name}()")
+        cpp.open()
+        cpp.line("// The RPC server has no handler removal; replace them with rejections.")
+        for method in model.methods:
+            cpp.line("mRpcServer->SetHandler(")
+            cpp.line(f"    cServiceId, c{method.name}MethodId,")
+            cpp.line("    [](const std::vector<std::uint8_t> &,")
+            cpp.line("       std::vector<std::uint8_t> &)")
+            cpp.line("    {")
+            cpp.line("        return false;")
+            cpp.line("    });")
+        cpp.close()
+    else:
+        cpp.line(f"virtual ~{class_name}() noexcept = default;")
     cpp.line()
     cpp.line("/// @brief Enable the events and the methods of the service")
     cpp.line("void OfferService() noexcept")
