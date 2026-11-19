@@ -46,8 +46,8 @@ _RESERVED_MEMBERS = frozenset(["OfferService", "StopOfferService", "IsOffered"])
 
 
 # Short names used for the primitive types in the generated ARXML package
-_PRIMITIVE_NAMES = frozenset(["bool", "float", "double"] +
-                             [f"{prefix}int{size}_t" for prefix in ("", "u") for size in (8, 16, 32, 64)])
+_PRIMITIVE_NAMES = frozenset(["bool", "float", "double"]).union(
+    f"{prefix}int{size}_t" for prefix in ("", "u") for size in (8, 16, 32, 64))
 
 
 class BridgeError(Exception):
@@ -611,7 +611,7 @@ def render_common_header(model: ServiceModel, ara_include_prefix: str) -> str:
     """
     cpp, _ = _begin_header(
         model, "common", "SOME/IP deployment identifiers and payload serialization shared by proxy and skeleton.",
-        ["<cstddef>", "<cstdint>", "<cstring>", "<stdexcept>", "<utility>", "<vector>",
+        ["<algorithm>", "<cstddef>", "<cstdint>", "<stdexcept>", "<utility>", "<vector>",
          f'"{ara_include_prefix}/com/someip/someip_message.h"', f'"./{model.file_stem}_types.h"'])
     cpp.line("/// @brief SOME/IP service interface ID")
     cpp.line(f"const std::uint16_t cServiceId{{{_hex(model.service_id)}}};")
@@ -675,7 +675,11 @@ def render_common_header(model: ServiceModel, ara_include_prefix: str) -> str:
             cpp.line("AppendBigEndian(payload, value);")
         elif type_name in ("float", "double"):
             cpp.line(f"{carrier} _raw;")
-            cpp.line("std::memcpy(&_raw, &value, sizeof(_raw));")
+            cpp.line("const std::uint8_t *cBytes{")
+            cpp.line("    reinterpret_cast<const std::uint8_t *>(&value)};")
+            cpp.line("std::copy(")
+            cpp.line("    cBytes, cBytes + sizeof(_raw),")
+            cpp.line("    reinterpret_cast<std::uint8_t *>(&_raw));")
             cpp.line("AppendBigEndian(payload, _raw);")
         else:
             cpp.line(f"AppendBigEndian(payload, static_cast<{carrier}>(value));")
@@ -697,7 +701,11 @@ def render_common_header(model: ServiceModel, ara_include_prefix: str) -> str:
             if type_name == "bool":
                 cpp.line("value = (_raw != 0);")
             elif type_name in ("float", "double"):
-                cpp.line("std::memcpy(&value, &_raw, sizeof(value));")
+                cpp.line("const std::uint8_t *cBytes{")
+                cpp.line("    reinterpret_cast<const std::uint8_t *>(&_raw)};")
+                cpp.line("std::copy(")
+                cpp.line("    cBytes, cBytes + sizeof(value),")
+                cpp.line("    reinterpret_cast<std::uint8_t *>(&value));")
             else:
                 cpp.line(f"value = static_cast<{type_name}>(_raw);")
             cpp.line("return true;")

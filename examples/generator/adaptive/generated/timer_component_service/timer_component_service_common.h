@@ -8,9 +8,9 @@
 #ifndef TIMER_COMPONENT_SERVICE_COMMON_H
 #define TIMER_COMPONENT_SERVICE_COMMON_H
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -236,7 +236,11 @@ namespace generated
                 std::vector<std::uint8_t> &payload, float value)
             {
                 std::uint32_t _raw;
-                std::memcpy(&_raw, &value, sizeof(_raw));
+                const std::uint8_t *cBytes{
+                    reinterpret_cast<const std::uint8_t *>(&value)};
+                std::copy(
+                    cBytes, cBytes + sizeof(_raw),
+                    reinterpret_cast<std::uint8_t *>(&_raw));
                 AppendBigEndian(payload, _raw);
             }
 
@@ -251,7 +255,11 @@ namespace generated
                     return false;
                 }
 
-                std::memcpy(&value, &_raw, sizeof(value));
+                const std::uint8_t *cBytes{
+                    reinterpret_cast<const std::uint8_t *>(&_raw)};
+                std::copy(
+                    cBytes, cBytes + sizeof(value),
+                    reinterpret_cast<std::uint8_t *>(&value));
                 return true;
             }
 
@@ -259,7 +267,11 @@ namespace generated
                 std::vector<std::uint8_t> &payload, double value)
             {
                 std::uint64_t _raw;
-                std::memcpy(&_raw, &value, sizeof(_raw));
+                const std::uint8_t *cBytes{
+                    reinterpret_cast<const std::uint8_t *>(&value)};
+                std::copy(
+                    cBytes, cBytes + sizeof(_raw),
+                    reinterpret_cast<std::uint8_t *>(&_raw));
                 AppendBigEndian(payload, _raw);
             }
 
@@ -274,7 +286,11 @@ namespace generated
                     return false;
                 }
 
-                std::memcpy(&value, &_raw, sizeof(value));
+                const std::uint8_t *cBytes{
+                    reinterpret_cast<const std::uint8_t *>(&_raw)};
+                std::copy(
+                    cBytes, cBytes + sizeof(value),
+                    reinterpret_cast<std::uint8_t *>(&value));
                 return true;
             }
         }
