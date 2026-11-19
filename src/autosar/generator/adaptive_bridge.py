@@ -32,7 +32,9 @@ FIRST_METHOD_ID = 0x0001
 EVENT_GROUP_ID = 1
 SOMEIP_PROTOCOL_VERSION = 1
 
-_IDENTIFIER = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+_IDENTIFIER = re.compile(r"^[A-Za-z][A-Za-z0-9_]*\Z")
+_REFERENCE = re.compile(r"^(/[A-Za-z][A-Za-z0-9_]*)+\Z")
+_PRINTABLE = re.compile(r"^[\x20-\x7e]*\Z")
 _CPP_KEYWORDS = frozenset("""
 alignas alignof and and_eq asm auto bitand bitor bool break case catch char char16_t char32_t class compl const
 constexpr const_cast continue decltype default delete do double dynamic_cast else enum explicit export extern false
@@ -353,7 +355,29 @@ def build_service_model(classic: ClassicModel,
         if cpp_type.compu_method_ref is not None:
             model.not_mapped.append(f"{cpp_type.classic_ref}: CompuMethod {cpp_type.compu_method_ref} "
                                     "(events and methods carry the raw internal value)")
+    _check_comment_texts(model)
     return model
+
+
+def _check_comment_texts(model: ServiceModel) -> None:
+    """
+    Classic references are copied into comments of the generated files.
+    Rejects anything that is not a plain reference, so input text cannot leave a comment.
+    """
+    refs = [model.classic_swc_ref]
+    for event in model.events:
+        refs += [event.classic_port_ref, event.classic_element_ref]
+    for method in model.methods:
+        refs += [method.classic_port_ref, method.classic_operation_ref]
+    for cpp_type in model.types:
+        refs += [cpp_type.classic_ref, cpp_type.base_type_ref, cpp_type.compu_method_ref,
+                 cpp_type.data_constraint_ref]
+    for ref in refs:
+        if ref is not None and not _REFERENCE.match(ref):
+            raise BridgeError(f"Reference {ref!r} is not a plain AUTOSAR reference")
+    for item in model.not_mapped:
+        if not _PRINTABLE.match(item):
+            raise BridgeError(f"Name in {item!r} contains characters that are not allowed in generated comments")
 
 
 def _unique_member_names(members: list[tuple[str, str]]) -> list[str]:

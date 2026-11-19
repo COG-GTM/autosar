@@ -402,6 +402,19 @@ class OutputTests(unittest.TestCase):
         header = bridge.render_skeleton_header(wheel_speed_model(), "ara")
         self.assertIn('#include "ara/com/helper/network_layer.h"', header)
 
+    def test_names_that_would_leave_a_comment_are_rejected(self):
+        injected = "Interfaces&#10;#error injected&#10;"
+        for old, new in (("Interfaces", injected), ("Components", "Components&#10;int x;"),
+                         ("Reference", "Reference&#10;int x;")):
+            with self.subTest(name=old):
+                classic = bridge.ClassicModel()
+                classic.load_str(SYNTHETIC_ARXML.replace(f">{old}<", f">{new}<").replace(f"/{old}/", f"/{new}/"))
+                swc_names = [element.name for element in classic.elements.values()
+                             if isinstance(element, ar_element.SwComponentType)]
+                self.assertIn("TorqueSensor", swc_names)
+                with self.assertRaises(bridge.BridgeError):
+                    bridge.build_service_model(classic, "TorqueSensor")
+
     def test_snake_case(self):
         self.assertEqual(bridge.to_snake_case("WheelSpeedSensorService"), "wheel_speed_sensor_service")
         self.assertEqual(bridge.to_snake_case("ABSControl"), "abs_control")
