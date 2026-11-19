@@ -360,6 +360,8 @@ namespace generated
 
             /// @brief Deserialize a message from a byte vector
             /// @throws std::out_of_range Throws when the SOME/IP header is truncated
+            ///         or the declared length exceeds the received bytes
+            /// @note Bytes after the declared length (transport padding) are ignored.
             static EventMessage Deserialize(
                 const std::vector<std::uint8_t> &payload)
             {
@@ -368,10 +370,22 @@ namespace generated
                     throw std::out_of_range("Truncated SOME/IP header.");
                 }
 
+                // The length field covers the header remainder and the event payload
+                const std::size_t cLengthOffset{4};
+                const std::size_t cHeaderRemainder{8};
+                std::size_t _offset{cLengthOffset};
+                std::uint32_t _length{0};
+                serialization::TryExtractBigEndian(payload, _offset, _length);
+                if (_length < cHeaderRemainder || _length > payload.size() - _offset)
+                {
+                    throw std::out_of_range("Invalid SOME/IP length.");
+                }
+
                 EventMessage _result(0, 1, std::vector<std::uint8_t>());
                 ara::com::someip::SomeIpMessage::Deserialize(&_result, payload);
                 _result.mEventPayload.assign(
-                    payload.cbegin() + cHeaderSize, payload.cend());
+                    payload.cbegin() + cHeaderSize,
+                    payload.cbegin() + _offset + _length);
 
                 return _result;
             }
