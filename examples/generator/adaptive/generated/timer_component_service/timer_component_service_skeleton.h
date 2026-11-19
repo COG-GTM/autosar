@@ -105,6 +105,7 @@ namespace generated
                         });
                 }
 
+                /// @brief Not copyable: transports keep a pointer to this object
                 TimerComponentServiceSkeleton(const TimerComponentServiceSkeleton &) = delete;
                 TimerComponentServiceSkeleton &operator=(const TimerComponentServiceSkeleton &) = delete;
 
