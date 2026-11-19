@@ -273,6 +273,9 @@ class ImplementationDataTypeToCppTests(unittest.TestCase):
             (ar_element.SwBaseType("boolean", size=8, encoding="BOOLEAN"), "bool"),
             (ar_element.SwBaseType("float32", size=32, encoding="IEEE754"), "float"),
             (ar_element.SwBaseType("float64", size=64, encoding="IEEE754"), "double"),
+            (ar_element.SwBaseType("sint16", size=16, native_declaration="short"), "std::int16_t"),
+            (ar_element.SwBaseType("float64", size=64, native_declaration="double"), "double"),
+            (ar_element.SwBaseType("Real", size=32, native_declaration="float"), "float"),
         ]
         for base_type, expected in cases:
             with self.subTest(base_type=base_type.name):

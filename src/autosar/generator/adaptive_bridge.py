@@ -158,14 +158,14 @@ def _check_identifier(name: str, what: str) -> str:
 def base_type_to_cpp(base_type: ar_element.SwBaseType) -> str:
     """
     Maps a SwBaseType to a C++ type using its size and encoding.
-    Falls back to the short name for the signedness when the encoding is not conclusive.
+    Falls back to the short name and the native declaration when the encoding is not conclusive.
     """
     size = base_type.size
     encoding = (base_type.encoding or "").upper()
-    hint = (base_type.native_declaration or base_type.name or "").lower()
-    if encoding == "BOOLEAN" or (not encoding and hint in ("boolean", "bool")):
+    hints = tuple(text.lower() for text in (base_type.name, base_type.native_declaration) if text)
+    if encoding == "BOOLEAN" or (not encoding and any(hint in ("boolean", "bool") for hint in hints)):
         return "bool"
-    if encoding == "IEEE754" or hint.startswith("float"):
+    if encoding == "IEEE754" or any(hint.startswith("float") or hint == "double" for hint in hints):
         if size == 32:
             return "float"
         if size == 64:
@@ -174,7 +174,7 @@ def base_type_to_cpp(base_type: ar_element.SwBaseType) -> str:
     if size not in (8, 16, 32, 64):
         raise BridgeError(f"Base type '{base_type.name}': unsupported size {size}")
     signed = encoding in ("2C", "1C", "SM") or encoding.startswith("SINT") or \
-        (not encoding.startswith("UINT") and hint.startswith(("sint", "int")))
+        (not encoding.startswith("UINT") and any(hint.startswith(("sint", "int")) for hint in hints))
     return f"std::{'' if signed else 'u'}int{size}_t"
 
 
