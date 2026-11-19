@@ -102,6 +102,74 @@ class CompuMethodEnumTemplate(ar_template.ElementTemplate):
         return elem
 
 
+class UnitTemplate(ar_template.ElementTemplate):
+    """
+    Template class for units
+    """
+
+    def __init__(self,
+                 element_name: str,
+                 namespace_name: str,
+                 display_name: str | None = None) -> None:
+        super().__init__(element_name, namespace_name, ar_enum.PackageRole.UNIT)
+        self.display_name = display_name
+
+    def create(self,
+               package: ar_element.Package,
+               workspace: ar_workspace.Workspace,
+               dependencies: dict[str, ar_element.ARElement] | None,
+               **kwargs) -> ar_element.Unit:
+        """
+        Factory method
+        """
+        return ar_element.Unit(self.element_name, display_name=self.display_name)
+
+
+class CompuMethodLinearTemplate(ar_template.ElementTemplate):
+    """
+    Template class for linear CompuMethods (physical = offset + scaling_factor * internal)
+    """
+
+    def __init__(self,
+                 element_name: str,
+                 namespace_name: str,
+                 scaling_factor: int | float,
+                 offset: int | float = 0,
+                 lower_limit: int | float | None = None,
+                 upper_limit: int | float | None = None,
+                 unit: ar_template.ElementTemplate | None = None,
+                 desc: str | None = None) -> None:
+        dependencies = None if unit is None else [unit]
+        super().__init__(element_name, namespace_name, ar_enum.PackageRole.COMPU_METHOD, dependencies)
+        self.category = "LINEAR"
+        self.scaling_factor = scaling_factor
+        self.offset = offset
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+        self.unit = unit
+        self.desc = desc
+
+    def create(self,
+               package: ar_element.Package,
+               workspace: ar_workspace.Workspace,
+               dependencies: dict[str, ar_element.ARElement] | None,
+               **kwargs) -> ar_element.CompuMethod:
+        """
+        Factory method
+        """
+        unit_ref = None if self.unit is None else dependencies[self.unit.ref(workspace)].ref()
+        computation = ar_element.Computation.make_rational(self.scaling_factor,
+                                                           self.offset,
+                                                           self.lower_limit,
+                                                           self.upper_limit)
+        elem = ar_element.CompuMethod(name=self.element_name,
+                                      desc=self.desc,
+                                      category=self.category,
+                                      int_to_phys=computation,
+                                      unit_ref=unit_ref)
+        return elem
+
+
 class ImplementationValueTypeTemplate(ar_template.ElementTemplate):
     """
     Template class for value-based implementation data type

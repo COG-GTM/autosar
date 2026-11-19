@@ -25,6 +25,7 @@ def create_namespaces(workspace: ar_workspace.Workspace):
         "ImplementationDataType": "/DataTypes/ImplementationDataTypes",
         "CompuMethod": "/DataTypes/CompuMethods",
         "DataConstraint": "/DataTypes/DataConstrs",
+        "Unit": "/DataTypes/Units",
         "ModeDeclaration": "/ModeDclrGroups",
         "PortInterface": "/PortInterfaces",
         "Constant": "/Constants",

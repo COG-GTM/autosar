@@ -7,7 +7,7 @@ Port interface templates
 
 import autosar.xml.element as ar_element
 import autosar.xml.workspace as ar_workspace
-from . import factory, mode, platform
+from . import datatype, factory, mode, platform
 
 NAMESPACE = "Default"
 
@@ -53,3 +53,4 @@ FreeRunningTimer_I = factory.GenericPortInterfaceTemplate("FreeRunningTimer_I",
                                                                    platform.ImplementationTypes.boolean])
 VehicleSpeed_I = factory.SenderReceiverInterfaceTemplate("VehicleSpeed_I", NAMESPACE, platform.ImplementationTypes.uint16)
 EngineSpeed_I = factory.SenderReceiverInterfaceTemplate("EngineSpeed_I", NAMESPACE, platform.ImplementationTypes.uint16)
+WheelSpeed_I = factory.SenderReceiverInterfaceTemplate("WheelSpeed_I", NAMESPACE, datatype.WheelSpeed_T)

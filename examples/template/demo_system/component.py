@@ -93,6 +93,33 @@ def create_TimerComponent(package: ar_element.Package,
     return swc
 
 
+def create_WheelSpeedSensor(package: ar_element.Package,
+                            workspace: ar_workspace.Workspace,
+                            deps: dict[str, ar_element.ARElement] | None,
+                            **_0) -> ar_element.ApplicationSoftwareComponentType:
+    """
+    Provide ports:
+    - WheelSpeed (WheelSpeed_T, 0.01 km/h per bit)
+
+    Runs a 10 ms periodic runnable that writes the WheelSpeed data element.
+    """
+    wheel_speed_interface = deps[portinterface.WheelSpeed_I.ref(workspace)]
+    wheel_speed_init = deps[constants.WheelSpeed_IV.ref(workspace)]
+    swc_name = "WheelSpeedSensor"
+    swc = ar_element.ApplicationSoftwareComponentType(swc_name)
+    package.append(swc)
+    swc.create_provide_port("WheelSpeed", wheel_speed_interface, com_spec={"init_value": wheel_speed_init.ref(),
+                                                                           "uses_end_to_end_protection": False})
+    periodic_runnable_name = swc_name + '_Run'
+    behavior = swc.create_internal_behavior()
+    behavior.create_port_api_options("*", enable_take_address=False, indirect_api=False)
+    runnable = behavior.create_runnable(periodic_runnable_name,
+                                        can_be_invoked_concurrently=False, minimum_start_interval=0)
+    runnable.create_port_access("WheelSpeed")
+    behavior.create_timing_event(periodic_runnable_name, 10.0 / 1000)
+    return swc
+
+
 def create_composition_component(package: ar_element.Package,
                                  workspace: ar_workspace.Workspace,
                                  deps: dict[str, ar_element.ARElement] | None,
@@ -108,22 +135,30 @@ def create_composition_component(package: ar_element.Package,
     vehicle_speed_interface = deps[portinterface.VehicleSpeed_I.ref(workspace)]
     engine_speed_init = deps[constants.EngineSpeed_IV.ref(workspace)]
     vehicle_speed_init = deps[constants.VehicleSpeed_IV.ref(workspace)]
+    wheel_speed_interface = deps[portinterface.WheelSpeed_I.ref(workspace)]
+    wheel_speed_init = deps[constants.WheelSpeed_IV.ref(workspace)]
     receiver_component = workspace.find(ReceiverComponent.ref(workspace))
     timer_component = workspace.find(TimerComponent.ref(workspace))
+    wheel_speed_sensor = workspace.find(WheelSpeedSensor.ref(workspace))
     assert isinstance(receiver_component, ar_element.ApplicationSoftwareComponentType)
     assert isinstance(timer_component, ar_element.ApplicationSoftwareComponentType)
+    assert isinstance(wheel_speed_sensor, ar_element.ApplicationSoftwareComponentType)
     swc = ar_element.CompositionSwComponentType("CompositionComponent")
     package.append(swc)
     swc.create_require_port("EngineSpeed", engine_speed_interface, com_spec={"init_value": engine_speed_init.ref(),
                                                                              "uses_end_to_end_protection": False})
     swc.create_require_port("VehicleSpeed", vehicle_speed_interface, com_spec={"init_value": vehicle_speed_init.ref(),
                                                                                "uses_end_to_end_protection": False})
+    swc.create_provide_port("WheelSpeed", wheel_speed_interface, com_spec={"init_value": wheel_speed_init.ref(),
+                                                                           "uses_end_to_end_protection": False})
 
     swc.create_component_prototype(receiver_component)
     swc.create_component_prototype(timer_component)
+    swc.create_component_prototype(wheel_speed_sensor)
     swc.create_connector("TimerComponent/FreeRunningTimer", "ReceiverComponent/FreeRunningTimer", workspace)
     swc.create_connector("VehicleSpeed", "ReceiverComponent/VehicleSpeed", workspace)
     swc.create_connector("EngineSpeed", "ReceiverComponent/EngineSpeed", workspace)
+    swc.create_connector("WheelSpeedSensor/WheelSpeed", "WheelSpeed", workspace)
     return swc
 
 
@@ -146,6 +181,14 @@ TimerComponent = factory.GenericComponentTypeTemplate("TimerComponent",
 TimerComponent_Implementation = factory.SwcImplementationTemplate("TimerComponent_Implementation",
                                                                   NAMESPACE,
                                                                   component_type=TimerComponent)
+WheelSpeedSensor = factory.GenericComponentTypeTemplate("WheelSpeedSensor",
+                                                        NAMESPACE,
+                                                        create_WheelSpeedSensor,
+                                                        depends=[portinterface.WheelSpeed_I,
+                                                                 constants.WheelSpeed_IV])
+WheelSpeedSensor_Implementation = factory.SwcImplementationTemplate("WheelSpeedSensor_Implementation",
+                                                                    NAMESPACE,
+                                                                    component_type=WheelSpeedSensor)
 CompositionComponent = factory.GenericComponentTypeTemplate("CompositionComponent",
                                                             NAMESPACE,
                                                             create_composition_component,
@@ -153,5 +196,8 @@ CompositionComponent = factory.GenericComponentTypeTemplate("CompositionComponen
                                                                      portinterface.VehicleSpeed_I,
                                                                      constants.EngineSpeed_IV,
                                                                      constants.VehicleSpeed_IV,
+                                                                     portinterface.WheelSpeed_I,
+                                                                     constants.WheelSpeed_IV,
                                                                      ReceiverComponent_Implementation,
-                                                                     TimerComponent_Implementation])
+                                                                     TimerComponent_Implementation,
+                                                                     WheelSpeedSensor_Implementation])
