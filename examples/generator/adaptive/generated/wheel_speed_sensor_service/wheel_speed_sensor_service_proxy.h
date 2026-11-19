@@ -91,6 +91,8 @@ namespace generated
                     if (!mSubscribed ||
                         message.ServiceId() != cServiceId ||
                         message.EventId() != mEventId ||
+                        message.ProtocolVersion() != cProtocolVersion ||
+                        message.InterfaceVersion() != cMajorVersion ||
                         message.MessageType() !=
                             ara::com::someip::SomeIpMessageType::Notification)
                     {

@@ -1070,6 +1070,8 @@ def render_proxy_header(model: ServiceModel, ara_include_prefix: str) -> str:
         cpp.line("if (!mSubscribed ||")
         cpp.line("    message.ServiceId() != cServiceId ||")
         cpp.line("    message.EventId() != mEventId ||")
+        cpp.line("    message.ProtocolVersion() != cProtocolVersion ||")
+        cpp.line("    message.InterfaceVersion() != cMajorVersion ||")
         cpp.line("    message.MessageType() !=")
         cpp.line("        ara::com::someip::SomeIpMessageType::Notification)")
         cpp.open()
