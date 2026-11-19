@@ -308,6 +308,12 @@ class ImplementationDataTypeToCppTests(unittest.TestCase):
         with self.assertRaisesRegex(bridge.BridgeError, "category ARRAY"):
             synthetic_model("ArraySender")
 
+    def test_type_named_like_a_primitive_is_rejected(self):
+        classic = bridge.ClassicModel()
+        classic.load_str(SYNTHETIC_ARXML.replace("Torque_T", "uint16_t"))
+        with self.assertRaisesRegex(bridge.BridgeError, "name of a C\\+\\+ primitive"):
+            bridge.build_service_model(classic, "TorqueSensor")
+
     def test_types_header(self):
         header = bridge.render_types_header(wheel_speed_model())
         self.assertIn("using WheelSpeed_T = std::uint16_t;", header)

@@ -45,6 +45,11 @@ while xor xor_eq
 _RESERVED_MEMBERS = frozenset(["OfferService", "StopOfferService", "IsOffered"])
 
 
+# Short names used for the primitive types in the generated ARXML package
+_PRIMITIVE_NAMES = frozenset(["bool", "float", "double"] +
+                             [f"{prefix}int{size}_t" for prefix in ("", "u") for size in (8, 16, 32, 64)])
+
+
 class BridgeError(Exception):
     """
     Raised when the Classic input cannot be mapped by the v0 rules
@@ -258,6 +263,9 @@ class _TypeMapper:
             raise BridgeError(f"'{path}' is {type(data_type).__name__}: "
                               "v0 only maps ImplementationDataType")
         name = _check_identifier(data_type.name, "Data type")
+        if name in _PRIMITIVE_NAMES:
+            raise BridgeError(f"Data type '{path}' has the name of a C++ primitive, "
+                              "which would be ambiguous in the generated ARXML package")
         if self._names.setdefault(name, path) != path:
             raise BridgeError(f"Data types '{self._names[name]}' and '{path}' have the same short name")
         props = data_type.sw_data_def_props[0] if data_type.sw_data_def_props else None
