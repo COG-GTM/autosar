@@ -24,3 +24,4 @@ python examples\template\generate_xml_without_config.py
 python examples\generator\data_types\gen_type_defs_scalar.py
 python examples\generator\data_types\gen_type_defs_array.py
 python examples\generator\data_types\gen_type_defs_record.py
+python examples\generator\adaptive\classic_to_adaptive.py
